@@ -4,15 +4,16 @@
 
 ## About
 
-This repository contains the source code and dependencies required to deploy a "bike rental shop" on Ethereum network.
+This repository contains the source code and dependencies required to deploy a Solidity based "bike rental shop" on Ethereum network.
 
 ## Main features
 
 - **Billing**: the rental fee is calculated as a function of time (i.e. duration of rental in seconds)
-- **Payment**: customers can choose to pay with Ether or Tokens
+- **Payment medium**: customers can choose to pay with Ether or Tokens
+- **Payment priority**: BikeRental contract will try to fullfil pending payment from available customer Ether balance as a first priority. If payment is not cancelled 100%, contract will try to fulfill pending payment with customer Token balance as a second priority.
 - **Collateral rate**: a premium rate (i.e. 20% cheaper than standard rate) is applicable to customer that decide to fund their accounts with collateral
 - **Un-spent funds**: Token or Ether amount that is not spent when rental finishes, is automatically returned/refunded to customers.
-- **Customer debt**: if customer rental fee is greater than available funds, a debt is generated and customer is banned from renting again until debt is cancelled 
+- **Customer debt**: if customer rental fee is greater than available funds, a debt is generated and customer is banned from renting again until debt is cancelled.
 
 ## Rental service start / stop
 
@@ -90,10 +91,10 @@ function mint(address _to, uint256 _amount) onlyOwner external
 
 - If the customer wishes to pay bike rental with Tokens, first he/she should purchase Tokens with Ether by calling `buyTokens()` (*payable*). The **BikeRental.sol** contract sends the received Ether to the *owner* of the bike rental shop.
 - Then customer should `approve()` the **BikeRental.sol** contract to transfer the desired amount of tokens into the *customerTokenAcount*.
-- When customer wants to start the rental, he/she calls `startRental()` and the **BikeRental.sol** contract will execute the transfer of tokens into the *customerTokenAcount*.
+- When customer wants to start the rental, he/she calls `startRental()` and the **BikeRental.sol** contract will execute the transfer of *approved* tokens into the *customerTokenAcount*.
 
 - When the customer returns the bike, he/she calls `stopRental()`.
-- At this point the **BikeRental.sol** contract will charge the customer with the corresponding rental fee, issuing a debit from the *customerTokenAccount* and send the amount  back to the pool of tokens.
+- At this point the **BikeRental.sol** contract will charge the customer with the corresponding rental fee in units of Tokens, issuing a debit from the *customerTokenAccount* and send the debited amount of Tokens back to the pool.
 - The remaining (un-spent) Token funds are transferred back to the customer.
 
 <img alt="figure1" src="./docs/payment2.png" width="500"  />
@@ -103,8 +104,8 @@ function mint(address _to, uint256 _amount) onlyOwner external
 The following is a short list of some considerations taken into account in order to minimize cost of gas
 
 - Enforcement of debt cancelling before rental to avoid revert after updating balances
-- uint8 storage allocation where possible
-- byte instead of string
+- `uint8` type storage allocation where possible
+- `byte` type instead of `string` type
 - use of function `external` instead of `public`
 - use events to keep track of data off-chain (i.e. record of bike details)
 
@@ -126,13 +127,14 @@ The following are the use cases currently implemented in the truffle test suite
 
 ## Usage
 
-Before running the following steps make sure you have the following dependencies installed in your system:
-- Truffle
-- Node.js
-- npm
-- Ganache Cli
+### Dependencies
 
-- Installation
+  - Truffle
+  - Node.js
+  - npm
+  - Ganache Cli
+
+### Installation
 
 ```bash
 $ git clone https://github.com/alejoacosta74/BikeRentalShop bikeRentalShop
@@ -141,7 +143,7 @@ $ npm install
 $ truffle init
 ```
 
-- Compile & migrate to local dev
+### Compile
 ```bash
 $ truffle compile
 ```
@@ -151,12 +153,12 @@ On a separate terminal start Ganache-CLI:
 ganache-cli -m "<seed phrase>" -h 0.0.0.0
 ```
 
-- Migrate and deploy to Ganache:
+### Migrate and deploy to Ganache:
 ```bash
 $ truffle migrate --network development
 ```
 
-- Run tests
+### Run tests
 
 ```javascript
 $ truffle test --network development  //run test suite against Ganache
