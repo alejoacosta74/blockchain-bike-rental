@@ -1,0 +1,23 @@
+{
+  "name": "13.bikeRental",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.4.0",
+    "@openzeppelin/test-helpers": "^0.5.10",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "dotenv": "^8.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.22.0",
+    "eslint-config-strongloop": "^2.1.0"
+  }
+}
