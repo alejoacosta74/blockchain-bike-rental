@@ -30,7 +30,7 @@ function sleep(ms) {
     });
 }   
 
-contract('BikeRentalShop contract -> UseCase1: Customer pays rental with Ether (and gets collateralized reduced rate)', ([owner, customer1, customer2, customer3]) => {
+contract('BikeRentalShop contract -> UseCase1: customer transfer Ether (above collateral threshold) and starts/stops bike rent', ([owner, customer1, customer2, customer3]) => {
     let bikeRental, token, startTime, stopTime;   
     const collateralPremium = 0.8;
 

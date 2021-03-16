@@ -10,7 +10,7 @@ This repository contains the source code and dependencies required to deploy a S
 
 - **Billing**: the rental fee is calculated as a function of time (i.e. duration of rental in seconds)
 - **Payment medium**: customers can choose to pay with Ether or Tokens
-- **Payment priority**: BikeRental contract will try to fullfil pending payment from available customer Ether balance as a first priority. If payment is not cancelled 100%, contract will try to fulfill pending payment with customer Token balance as a second priority.
+- **Payment priority**: BikeRental contract will try to fullfil pending payment with *Token* funds from customer's *TokenAccount* as a first priority. If payment is not cancelled 100%, contract will try to fulfill pending payment with *Ether* funds from customer's *EtherAccount* balance as a second priority.
 - **Collateral rate**: a premium rate (i.e. 20% cheaper than standard rate) is applicable to customer that decide to fund their accounts with collateral
 - **Un-spent funds**: Token or Ether amount that is not spent when rental finishes, is automatically returned/refunded to customers.
 - **Customer debt**: if customer rental fee is greater than available funds, a debt is generated and customer is banned from renting again until debt is cancelled.
@@ -114,7 +114,7 @@ The following is a short list of some considerations taken into account in order
 - Implement a minimum rental fee (applicable when rental elapsed time is below i.e. 15 minutes)
 - Deploy an off-chain Oracle that updates the rental rate according to real time traffic statistics
 - Set rate according to time of day (i.e., low, medium, high)
-- Ellaborate additional use case tests
+- Develop additional use case tests
 - Usage of SafeMath library
 
 ## Use case tested
@@ -122,8 +122,9 @@ The following is a short list of some considerations taken into account in order
 The following are the use cases currently implemented in the truffle test suite
 
 - **Use Case1**: customer transfer Ether (above collateral threshold) and starts/stops bike rent (`BikeRental.test1.js`) 
-- **Use Case2**: customer buys tokens, pays rental with tokens (above collateral threshold) and starts/stops bike rent (`BikeRental.test2.js`) 
-- **Use Case3**: customer buys Tokens, pays rental with Tokens (token amount below rental fee), debt is created, and customer transfer Ether to cancel debt (`BikeRental.test3.js`) 
+- **Use Case2**: customer buys tokens, approves transfer of tokens, and starts/stops bike rent (`BikeRental.test2.js`) 
+- **Use Case3**: customer buys Tokens, approves transfer of tokens, starts/stops bike rent, debt is created, and customer transfer additional Ether to cancel debt (`BikeRental.test3.js`) 
+- **Use Case4**: customer buys Tokens, approves transfer of tokens, transfer Ether, and starts/stops bike rent (`BikeRental.test4.js`) 
 
 ## Usage
 
@@ -167,84 +168,108 @@ $ truffle test --network development  //run test suite against Ganache
 ## Expected test outcome
 
 ```bash
-  Contract: BikeRentalShop contract -> UseCase1: Customer pays rental with Ether (and gets collateralized reduced rate)
+
+  Contract: BikeRentalShop contract -> UseCase1: customer transfer Ether (above collateral threshold) and starts/stops bike rent
     At contract deployment
-      ✓ Owner should transfer all tokens to BikeRental (127ms)
+      ✓ Owner should transfer all tokens to BikeRental (107ms)
     UseCase1: #1. customer transfer Ether (above collateral threshold) and starts bike rent
-      ✓ should update customer rental account by amount transferred  (119ms)
+      ✓ should update customer rental account by amount transferred  (81ms)
       ✓ should update rental ether balance by amount transfered
       ✓ should emit event RentalStart
       ✓ should emit event BalanceUpdated
-      ✓ customer should get premium "collateralized" rate (118ms)
+      ✓ customer should get premium "collateralized" rate (89ms)
     UseCase1: #2. customer finishes bike rental
-Rental elapsed time: 6
+Rental elapsed time: 13
       ✓ Un-spent ether should be returned to customer
-      ✓ Customer rental account balance should be zero (115ms)
+      ✓ Customer rental account balance should be zero (131ms)
       ✓ owner balance of ether should be incremented by ether worth equal to debited amount
       ✓ should emit event RentalStop
       ✓ should emit event DebtUpdated
       ✓ should emit event FundsReturned
 
-  Contract: BikeRentalShop contract -> UseCase2: Customer buys tokens, pays rental with tokens (and gets collateralized reduced rate)
+  Contract: BikeRentalShop contract -> UseCase2: customer buys tokens, approves transfer of tokens, and starts/stops bike rent
     At contract deployment
-      ✓ Owner should transfer all tokens to BikeRental (98ms)
+      ✓ Owner should transfer all tokens to BikeRental (139ms)
     UseCase2: #1. customer buys tokens
       ✓ should increase owner Ether balance with same amount of Ether that customer sent to purchase tokens
       ✓ should decrease customer Ether balance with same amount of Ether that customer sent to purchase tokens
     UseCase2: #2. customer transfer Tokens (above collateral threshold) and starts bike rent
-      ✓ should update customer rental account of tokens by amount transferred  (113ms)
-      ✓ should update rental balance of tokens by amount transferred (93ms)
+      ✓ should update customer rental account of tokens by amount transferred  (129ms)
+      ✓ should update rental balance of tokens by amount transferred (138ms)
       ✓ should emit event RentalStart
       ✓ should emit event BalanceUpdated
-      ✓ customer should get premium "collateralized" rate (103ms)
+      ✓ customer should get premium "collateralized" rate (131ms)
     UseCase2: #3. customer stops bike rent
-Rental elapsed time: 108
-      ✓ Un-spent tokens should be returned to customer (100ms)
-      ✓ Token balance of bikeRental should be incremented by amount of debited tokens (105ms)
+Rental elapsed time: 13
+      ✓ Un-spent tokens should be returned to customer (112ms)
+      ✓ Token balance of bikeRental should be incremented by amount of debited tokens (94ms)
       ✓ Customer rental account balance should be set to zero (111ms)
       ✓ should emit event RentalStop
       ✓ should emit event DebtUpdated
       ✓ should emit event FundsReturned
 
-  Contract: BikeRentalShop contract -> UseCase3: customer buys Tokens, pays rental with Tokens, debt is created, and customer transfer Ether to cancel debt
+  Contract: BikeRentalShop contract -> UseCase3: customer buys Tokens, approves transfer of tokens, starts/stops bike rent, debt is created, and customer transfer additional Ether to cancel debt
     At contract deployment
-      ✓ Owner should transfer all tokens to BikeRental (98ms)
+      ✓ Owner should transfer all tokens to BikeRental (106ms)
     UseCase3: #1. customer buys tokens
       ✓ should increase owner Ether balance with same amount of Ether that customer sent to purchase tokens
       ✓ should decrease customer Ether balance with same amount of Ether that customer sent to purchase tokens
-    UseCase3: #2. customer transfer Tokens (below collateral threshold) and starts bike rent
-      ✓ should update customer rental account of tokens by amount transferred  (102ms)
-      ✓ should update rental balance of tokens by amount transferred (107ms)
+    UseCase3: #2. customer starts bike rent
+      ✓ should update customer rental account of tokens by amount transferred  (143ms)
+      ✓ should update rental balance of tokens by amount transferred (120ms)
       ✓ should emit event RentalStart
       ✓ should emit event BalanceUpdated
-      ✓ customer should get standard rate (100ms)
+      ✓ customer should get standard rate (115ms)
     UseCase3: #3. customer stops bike rent and debt is generated
 Rental elapsed time: 17
       ✓ Standing debt should be equal to rental fee minus tokens transferred
-      ✓ Debited token amount from customer should be equal to tokens transferred amount (122ms)
-      ✓ Customer rental account balance should be set zero (112ms)
+      ✓ Debited token amount from customer should be equal to tokens transferred amount (109ms)
+      ✓ Customer rental account balance should be set zero (77ms)
       ✓ should emit event RentalStop
       ✓ should emit event DebtUpdated
       ✓ should NOT emit event FundsReturned
     UseCase3: #4. Customer tries to rent again while debt is pending
-      ✓ startRent should be reverted if debt is pending (923ms)
+      ✓ startRent should be reverted if debt is pending (741ms)
     UseCase3: #5. customer transfer Ether and debt is cancelled
       ✓ owner balance of ether should be incremented by ether worth equal to debited amount
-      ✓ customer standing debt should be 0 (zero) (104ms)
-      ✓ customer ether account balance should be 0 (zero) (102ms)
+      ✓ customer standing debt should be 0 (zero) (108ms)
+      ✓ customer ether account balance should be 0 (zero) (83ms)
       ✓ should emit event FundsReceived
       ✓ should emit event BalanceUpdated
       ✓ should emit event DebtUpdated
     UseCase3: #6. customer transfer extra Ether
       ✓ owner balance of ether should NOT be incremented if debt is zero
-      ✓ customer standing debt should be 0 (zero) (219ms)
-      ✓ customer ether account balance should equal to amount of Ether transferred (103ms)
+      ✓ customer standing debt should be 0 (zero) (76ms)
+      ✓ customer ether account balance should equal to amount of Ether transferred (76ms)
       ✓ should emit event FundsReceived
       ✓ should emit event BalanceUpdated
       ✓ should NOT emit event DebtUpdated
 
+  Contract: BikeRentalShop contract -> UseCase4: customer buys Tokens, approves transfer of tokens, transfer Ether, and starts/stops bike rent
+    At contract deployment
+      ✓ Owner should transfer all tokens to BikeRental (81ms)
+    UseCase4: #1. customer buys tokens
+      ✓ should increase owner Ether balance with same amount of Ether that customer sent to purchase tokens
+      ✓ should decrease customer Ether balance with same amount of Ether that customer sent to purchase tokens
+    UseCase4: #2. customer sends 40.000 wei and starts bike rent
+      ✓ should update customer rental account of tokens by amount transferred  (78ms)
+      ✓ should update rental balance of tokens by amount transferred (96ms)
+      ✓ should emit event RentalStart
+      ✓ should emit event BalanceUpdated
+      ✓ customer should get standard rate (83ms)
+    UseCase4: #3. customer stops bike rent, price is deducted from Tokens and Ether and remaining funds are returned
+Rental elapsed time: 15
+      ✓ Debited token amount from customer should be equal to tokens transferred amount
+      ✓ Debited ether amount from customer should be equal to total fee minus tokens debited from customer
+      ✓ Customer rental Token account balance should be set zero (115ms)
+      ✓ should emit event RentalStop
+      ✓ should emit event DebtUpdated
+      ✓ should emit event FundsReturned
 
-  53 passing (34s)
+
+  67 passing (47s)
 ```
 
+## BTC address
 
+*bc1q89aalael3kr5vhjn6ss4g4fscxnesc9gw8sfyryhzq7nhdphlm9semr93f*

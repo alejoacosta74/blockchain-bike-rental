@@ -113,11 +113,13 @@ contract BikeRental is Ownable {
     }
     //@dev: `_updateStandingDebt` internal function that updates customer standing debt with available Ether or Token funds
     //@params: `_customer` is address of customer to update debt
-    //@params: _amount is amount in Ether owed by customer to RentalShop
+    //@params: `_amount` is amount in Ether owed by customer to RentalShop
     //@returns: customer updated debt (in Ether)
     function _updateStandingDebt(address _customer, uint _amount) private returns (uint) {
         uint tokenPendingAmount = _amount * tokenConversionRate;
         uint tokensDebitedAmount=0;
+        
+        //First try to cancel pending debt with tokens available in customer's token account balance        
         if (customers[_customer].tokenBalance >= tokenPendingAmount){            
             customers[_customer].tokenBalance -= tokenPendingAmount;
             customers[_customer].etherDebt = 0;
@@ -131,13 +133,13 @@ contract BikeRental is Ownable {
             customers[_customer].tokenBalance = 0;
             customers[_customer].etherDebt = tokenPendingAmount / tokenConversionRate;
         }
-
+        //If debt pending amount > 0, try to cancel it with Ether available in customer's Ether account balance 
         uint etherPendingAmount = tokenPendingAmount / tokenConversionRate;
         if (customers[_customer].etherBalance >= etherPendingAmount){
             customers[_customer].etherBalance -= etherPendingAmount;
             wallet.transfer(etherPendingAmount);
             customers[_customer].etherDebt = 0;
-            emit DebtUpdated(_customer, etherPendingAmount , 0, etherPendingAmount, tokensDebitedAmount);
+            emit DebtUpdated(_customer, _amount , 0, etherPendingAmount, tokensDebitedAmount);
             return 0;
             
         }

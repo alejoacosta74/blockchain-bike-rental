@@ -30,7 +30,7 @@ function sleep(ms) {
     });
 }   
 
-contract('BikeRentalShop contract -> UseCase3: customer buys Tokens, pays rental with Tokens, debt is created, and customer transfer Ether to cancel debt', ([owner, customer1, customer2, customer3]) => {
+contract('BikeRentalShop contract -> UseCase3: customer buys Tokens, approves transfer of tokens, starts/stops bike rent, debt is created, and customer transfer additional Ether to cancel debt', ([owner, customer1, customer2, customer3]) => {
     let bikeRental, token, startTime, stopTime, stopReceipt, startReceipt, customerTokenBalance_1, bikeRentalTokenBalance_1;
     let  bikeRentalTokenBalance_2, customerAccountBalance_1, buyReceipt, ownerEtherBalance_1, customerEtherBalance_1;    
     const collateralPremium = 0.8;
@@ -72,7 +72,7 @@ contract('BikeRentalShop contract -> UseCase3: customer buys Tokens, pays rental
         })
     })
 
-    describe ('UseCase3: #2. customer transfer Tokens (below collateral threshold) and starts bike rent ', async ()=> {
+    describe ('UseCase3: #2. customer starts bike rent ', async ()=> {
         before (async()=>{
             approveReceipt = await token.approve(bikeRental.address, customerTokenBalance_1.toString(), {from: customer2});
             bikeRentalTokenBalance_1 = await token.balanceOf(bikeRental.address);
