@@ -4,16 +4,19 @@
 
 ## About
 
-This repository contains the source code and dependencies required to deploy a Solidity based "bike rental shop" on Ethereum network.
+This repository contains the source code and dependencies required to deploy a Solidity based "BIKE RENTAL SHOP" on Ethereum network.
 
 ## Main features
+
+This is a summary of some of the features implemented in the BikeRental contract:
 
 - **Billing**: the rental fee is calculated as a function of time (i.e. duration of rental in seconds)
 - **Payment medium**: customers can choose to pay with Ether or Tokens
 - **Payment priority**: BikeRental contract will try to fullfil pending payment with *Token* funds from customer's *TokenAccount* as a first priority. If payment is not cancelled 100%, contract will try to fulfill pending payment with *Ether* funds from customer's *EtherAccount* balance as a second priority.
-- **Collateral rate**: a premium rate (i.e. 20% cheaper than standard rate) is applicable to customer that decide to fund their accounts with collateral
+- **Collateral rate**: a premium rate (i.e. 20% cheaper than standard rate) is applicable to those customers that choose to fund their *tokenAccount* or *etherAccount* above a predefined collateral level (i.e. `etherCollateralThreshold` or `tokenCollateralThreshold` ).
 - **Un-spent funds**: Token or Ether amount that is not spent when rental finishes, is automatically returned/refunded to customers.
 - **Customer debt**: if customer rental fee is greater than available funds, a debt is generated and customer is banned from renting again until debt is cancelled.
+- **Contract upgradeability**: additional functions are implemented to enable the update of main business parameters (i.e. minimum balance required, rate, collateral threshold), that can only be executed by BikeRental **owner**.
 
 ## Rental service start / stop
 
@@ -41,7 +44,7 @@ Is the main contract, that implements the business logic for the BikeRental Shop
     uint etherCollateralThreshold=500000; //Threshold amount of ETH required to get PREMIUM "collateralized" rate
     uint tokenCollateralThreshold=1000000; //Threshold amount of Tokens required to get PREMIUM "collateralized" rate
     mapping (address => Customer) customers ; // Record with customers data (i.e., balance, startTie, debt, rate, etc)
-    mapping (uint8 => Bike) bikes ; // Stock of bikes        
+    mapping (uint8 => Bike) bikes ; // Available stock of bikes        
 ```
 
 - Main functions:
@@ -64,6 +67,7 @@ Is the main contract, that implements the business logic for the BikeRental Shop
 
 - ERC20 token compliance smart contract
 - Addon functions:
+
 ```javascript
 function burn(address _to, uint256 _amount) onlyOwner external 
 function mint(address _to, uint256 _amount) onlyOwner external

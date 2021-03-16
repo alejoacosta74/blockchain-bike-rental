@@ -209,11 +209,33 @@ contract BikeRental is Ownable {
          rate = _rate;
      }
 
-    //@dev: `setCollateralThreshold` function is used by Bike Rental Shop owner to update the "collateral threshold"
-    //@param: `_threshold` is new threshold in units of ETH (wei) to be applied  
+    //@dev: `setCollateralThreshold` function is used by Bike Rental Shop owner to update the "collateral threshold" level
+    // required for customer to be eligible for "Premium collateralized rate".
+    //@param: `_threshold` is new threshold in units of wei to be applied  
     function setCollateralThreshold(uint _threshold) external onlyOwner {
          etherCollateralThreshold = _threshold;
          tokenCollateralThreshold = etherCollateralThreshold * tokenConversionRate;
+     }
+
+    //@dev: `setEtherMinimumBalance` function is used by Bike Rental Shop owner to update the "Minimum Ether Balance"
+    // in customer account required to start a bike rental
+    //@param: `_etherMin` is new ether minimum in units of wei to be applied  
+    function setEtherMinimumBalance(uint _etherMin) external onlyOwner {
+         etherMinBalance = _etherMin;
+         tokenMinBalance = etherMinBalance * tokenConversionRate;
+     }
+
+    //@dev: `setTokenConversionRate` function is used by Bike Rental Shop owner to update the exchange rate between Tokens and Ether    
+    //@param: `_conversion` is the new exchange rate to be applied  
+    function setTokenConversionRate(uint8 _conversion) external onlyOwner {
+         tokenConversionRate = _conversion;         
+     }
+
+    //@dev: `setCollateralPremium` function is used by Bike Rental Shop owner to update the Premium % discount 
+    // offered to customer that decide to fund their accounts above required collateral level    
+    //@param: `_premium` is the discount to be applied to standard rate  
+    function setCollateralPremium(uint8 _premium) external onlyOwner {
+         collateralPremium = _premium;         
      }
 
     //truffle testing functions     
