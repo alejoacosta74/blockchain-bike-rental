@@ -126,10 +126,16 @@ The following are the use cases currently implemented in the truffle test suite
 
 ## Usage
 
+Before running the following steps make sure you have the following dependencies installed in your system:
+- Truffle
+- Node.js
+- npm
+- Ganache Cli
+
 - Installation
 
 ```bash
-$ git clone https://github.com/alejoacosta74/solidityVotingPower bikeRentalShop
+$ git clone https://github.com/alejoacosta74/BikeRentalShop bikeRentalShop
 $ cd bikeRentalShop
 $ npm install
 $ truffle init
