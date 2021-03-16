@@ -16,7 +16,7 @@ This is a summary of some of the features implemented in the BikeRental contract
 - **Collateral rate**: a premium rate (i.e. 20% cheaper than standard rate) is applicable to those customers that choose to fund their *tokenAccount* or *etherAccount* above a predefined collateral level (i.e. `etherCollateralThreshold` or `tokenCollateralThreshold` ).
 - **Un-spent funds**: Token or Ether amount that is not spent when rental finishes, is automatically returned/refunded to customers.
 - **Customer debt**: if customer rental fee is greater than available funds, a debt is generated and customer is banned from renting again until debt is cancelled.
-- **Contract upgradeability**: additional functions are implemented to enable the update of main business parameters (i.e. minimum balance required, rate, collateral threshold), that can only be executed by BikeRental **owner**.
+- **Contract upgradeability**: additional functions are implemented to enable the update of main business parameters (i.e. minimum balance required, rate, collateral threshold), that only BikeRental **owner** is allowed to execute.
 
 ## Rental service start / stop
 
@@ -75,8 +75,9 @@ function mint(address _to, uint256 _amount) onlyOwner external
 
 ## Payment model
 
-- Each customer has 2 accounts at BikeRentalShop: Ether account and Token account.
-- Customers may choose to pay the rental of bike via ETHER or TOKENS.
+Every customer has 2 accounts at BikeRentalShop: *etherAccount* and *tokenAccount*. Each customer may choose to pay the rental of bike via ETHER or TOKENS. 
+
+Below is included a description of each payment model:
 
 ---------------------------------------------------------------
 
@@ -85,7 +86,7 @@ function mint(address _to, uint256 _amount) onlyOwner external
 - If the customer chooses to pay bike rental with Ether, he/she calls `startRental()` (*payable*) and sends Ether to **BikeRental.sol** contract in order to provide funds to the *customerEtherAccount*.
 
 - When the customer returns the bike, he/she calls `stopRental()`. 
-- At this point the **BikeRental.sol** contract will charge the customer with the corresponding rental fee, issuing a debit from the *customerEtherAcount* and send the Ether amount to the account of the *owner* of the bike rental shop. 
+- At this point the **BikeRental.sol** contract will charge the customer with the corresponding rental fee, issuing a debit from the *customerEtherAccount* and send the Ether amount to the account of the *owner* of the bike rental shop. 
 - The remaining (un-spent) ether funds are transferred back to the customer. 
 
 <img alt="figure1" src="./docs/payment1.png" width="500"/>
@@ -94,8 +95,8 @@ function mint(address _to, uint256 _amount) onlyOwner external
 ### Paying with TOKENS
 
 - If the customer wishes to pay bike rental with Tokens, first he/she should purchase Tokens with Ether by calling `buyTokens()` (*payable*). The **BikeRental.sol** contract sends the received Ether to the *owner* of the bike rental shop.
-- Then customer should `approve()` the **BikeRental.sol** contract to transfer the desired amount of tokens into the *customerTokenAcount*.
-- When customer wants to start the rental, he/she calls `startRental()` and the **BikeRental.sol** contract will execute the transfer of *approved* tokens into the *customerTokenAcount*.
+- Then customer should `approve()` the **BikeRental.sol** contract to transfer the desired amount of tokens into the *customerTokenAccount*.
+- When customer wants to start the rental, he/she calls `startRental()` and the **BikeRental.sol** contract will execute the transfer of *approved* tokens into the *customerTokenAccount*.
 
 - When the customer returns the bike, he/she calls `stopRental()`.
 - At this point the **BikeRental.sol** contract will charge the customer with the corresponding rental fee in units of Tokens, issuing a debit from the *customerTokenAccount* and send the debited amount of Tokens back to the pool.
