@@ -1,14 +1,34 @@
 # Bike Rental Shop
 
-<img alt="Bike" src="./docs/bike.png" height="200" />
+<img alt="Bike" src="./docs/bike.png" height="150" />
+
+- [Bike Rental Shop](#bike-rental-shop)
+  - [About](#about)
+  - [Overview](#overview)
+  - [Main features](#main-features)
+  - [Rental service start / stop](#rental-service-start--stop)
+  - [Smart contracts](#smart-contracts)
+  - [Payment model](#payment-model)
+  - [Gas optimization](#gas-optimization)
+  - [Further improvements](#further-improvements)
+  - [Use case tested](#use-case-tested)
+  - [Usage](#usage)
+  - [Expected test outcome](#expected-test-outcome)
+  - [BTC address](#btc-address)
 
 ## About
 
 This repository contains the source code and dependencies required to deploy a Solidity based "BIKE RENTAL SHOP" on Ethereum network.
 
+## Overview
+
+The following diagram shows a high level overview of the interaction between the main components and actors in the bike rental service:
+
+![alt](./docs/overview.png)
+
 ## Main features
 
-This is a summary of some of the features implemented in the BikeRental contract:
+This is a summary with the main features implemented in the BikeRental contract:
 
 - **Billing**: the rental fee is calculated as a function of time (i.e. duration of rental in seconds)
 - **Payment medium**: customers can choose to pay with Ether or Tokens
@@ -16,11 +36,19 @@ This is a summary of some of the features implemented in the BikeRental contract
 - **Collateral rate**: a premium rate (i.e. 20% cheaper than standard rate) is applicable to those customers that choose to fund their *tokenAccount* or *etherAccount* above a predefined collateral level (i.e. `etherCollateralThreshold` or `tokenCollateralThreshold` ).
 - **Un-spent funds**: Token or Ether amount that is not spent when rental finishes, is automatically returned/refunded to customers.
 - **Customer debt**: if customer rental fee is greater than available funds, a debt is generated and customer is banned from renting again until debt is cancelled.
-- **Contract upgradeability**: additional functions are implemented to enable the update of main business parameters (i.e. minimum balance required, rate, collateral threshold), that only BikeRental **owner** is allowed to execute.
+- **Contract upgradeability**: additional functions are implemented to enable the update of main business parameters (i.e. minimum balance required, rate, collateral threshold), that only BikeRental **owner** is allowed to execute:
+
+```javascript
+    function setRate(uint _rate) external onlyOwner
+    function setCollateralThreshold(uint _threshold) external onlyOwner
+    function setEtherMinimumBalance(uint _etherMin) external onlyOwner
+    function setTokenConversionRate(uint8 _conversion) external onlyOwner
+    function setCollateralPremium(uint8 _premium) external onlyOwner
+```
 
 ## Rental service start / stop
 
-- The process to start rental is triggered when customer calls function `startRental()` 
+- The rental service starts when customer calls function `startRental()`
 - The rental service is finished when customer calls function `stopRental()`
 
 ## Smart contracts
@@ -47,7 +75,7 @@ Is the main contract, that implements the business logic for the BikeRental Shop
     mapping (uint8 => Bike) bikes ; // Available stock of bikes        
 ```
 
-- Main functions:
+- Main external functions:
 
 ```javascript
     //@dev: `buyTokens` used by customer to purchase rental Tokens in exchange of Ether    
@@ -75,7 +103,9 @@ function mint(address _to, uint256 _amount) onlyOwner external
 
 ## Payment model
 
-Every customer has 2 accounts at BikeRentalShop: *etherAccount* and *tokenAccount*. Each customer may choose to pay the rental of bike via ETHER or TOKENS. 
+All customers have 2 accounts at BikeRentalShop: *etherAccount* and *tokenAccount*.
+
+And they can choose to pay the rental service with **ether**, **tokens** or **both**.
 
 Below is included a description of each payment model:
 
@@ -85,27 +115,31 @@ Below is included a description of each payment model:
 
 - If the customer chooses to pay bike rental with Ether, he/she calls `startRental()` (*payable*) and sends Ether to **BikeRental.sol** contract in order to provide funds to the *customerEtherAccount*.
 
-- When the customer returns the bike, he/she calls `stopRental()`. 
-- At this point the **BikeRental.sol** contract will charge the customer with the corresponding rental fee, issuing a debit from the *customerEtherAccount* and send the Ether amount to the account of the *owner* of the bike rental shop. 
-- The remaining (un-spent) ether funds are transferred back to the customer. 
+- When the customer returns the bike, he/she calls `stopRental()`.
+- At this point the **BikeRental.sol** contract will debit the total fee from the *customerEtherAccount*, and credit it to the rental shop *owner*'s account.
+- The remaining (un-spent) ether funds are transferred back to the customer.
 
 <img alt="figure1" src="./docs/payment1.png" width="500"/>
 
 ---------------------------------------------------------------
+
 ### Paying with TOKENS
 
 - If the customer wishes to pay bike rental with Tokens, first he/she should purchase Tokens with Ether by calling `buyTokens()` (*payable*). The **BikeRental.sol** contract sends the received Ether to the *owner* of the bike rental shop.
 - Then customer should `approve()` the **BikeRental.sol** contract to transfer the desired amount of tokens into the *customerTokenAccount*.
-- When customer wants to start the rental, he/she calls `startRental()` and the **BikeRental.sol** contract will execute the transfer of *approved* tokens into the *customerTokenAccount*.
+- When customer wants to start the rental, he/she calls `startRental()` and the **BikeRental.sol** contract will execute the transfer of *approved* tokens to the *customerTokenAccount*.
 
 - When the customer returns the bike, he/she calls `stopRental()`.
-- At this point the **BikeRental.sol** contract will charge the customer with the corresponding rental fee in units of Tokens, issuing a debit from the *customerTokenAccount* and send the debited amount of Tokens back to the pool.
+- At this point the **BikeRental.sol** contract will debit the total fee from the *customerTokenAccount*, and transfer the amount of tokens back to the *BikeRental* pool of tokens.
+
 - The remaining (un-spent) Token funds are transferred back to the customer.
 
 <img alt="figure1" src="./docs/payment2.png" width="500"  />
 
 ---------------------------------------------------------------
+
 ## Gas optimization
+
 The following is a short list of some considerations taken into account in order to minimize cost of gas
 
 - Enforcement of debt cancelling before rental to avoid revert after updating balances
@@ -126,48 +160,51 @@ The following is a short list of some considerations taken into account in order
 
 The following are the use cases currently implemented in the truffle test suite
 
-- **Use Case1**: customer transfer Ether (above collateral threshold) and starts/stops bike rent (`BikeRental.test1.js`) 
-- **Use Case2**: customer buys tokens, approves transfer of tokens, and starts/stops bike rent (`BikeRental.test2.js`) 
-- **Use Case3**: customer buys Tokens, approves transfer of tokens, starts/stops bike rent, debt is created, and customer transfer additional Ether to cancel debt (`BikeRental.test3.js`) 
-- **Use Case4**: customer buys Tokens, approves transfer of tokens, transfer Ether, and starts/stops bike rent (`BikeRental.test4.js`) 
+- **Use Case1**: customer transfer Ether (above collateral threshold) and starts/stops bike rent (`BikeRental.test1.js`)
+- **Use Case2**: customer buys tokens, approves transfer of tokens, and starts/stops bike rent (`BikeRental.test2.js`)
+- **Use Case3**: customer buys Tokens, approves transfer of tokens, starts/stops bike rent, debt is created, and customer transfer additional Ether to cancel debt (`BikeRental.test3.js`)
+- **Use Case4**: customer buys Tokens, approves transfer of tokens, transfer Ether, and starts/stops bike rent (`BikeRental.test4.js`)
 
 ## Usage
 
 ### Dependencies
 
-  - Truffle
-  - Node.js
-  - npm
-  - Ganache Cli
+- Truffle
+- Node.js
+- npm
+- Ganache Cli
 
 ### Installation
 
 ```bash
-$ git clone https://github.com/alejoacosta74/BikeRentalShop bikeRentalShop
-$ cd bikeRentalShop
-$ npm install
-$ truffle init
+git clone https://github.com/alejoacosta74/BikeRentalShop bikeRentalShop
+cd bikeRentalShop
+npm install
+truffle init
 ```
 
 ### Compile
+
 ```bash
-$ truffle compile
+truffle compile
 ```
 
 On a separate terminal start Ganache-CLI:
+
 ```bash
 ganache-cli -m "<seed phrase>" -h 0.0.0.0
 ```
 
-### Migrate and deploy to Ganache:
+### Migrate and deploy to Ganache
+
 ```bash
-$ truffle migrate --network development
+truffle migrate --network development
 ```
 
 ### Run tests
 
 ```javascript
-$ truffle test --network development  //run test suite against Ganache
+truffle test --network development  //run test suite against Ganache
 ```
 
 ## Expected test outcome
@@ -278,3 +315,5 @@ Rental elapsed time: 15
 ## BTC address
 
 *bc1q89aalael3kr5vhjn6ss4g4fscxnesc9gw8sfyryhzq7nhdphlm9semr93f*
+
+@alejoacosta74
